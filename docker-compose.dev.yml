@@ -1,0 +1,65 @@
+# docker-compose.yml
+version: '3.1'
+
+services:
+  muxer:
+    build: ./
+    image: muxer-api
+    depends_on:
+      - redis
+    links:
+      - redis:redis.host
+    environment:
+      REDIS_HOST: redis.host
+      NODE_ENV: development
+      TRANSIT_DIR: /transit
+      TRANSCODED_DIR: /transcoded
+    volumes:
+      - ./:/home/node/server
+      - ${STORAGE_PATH}/transit:/transit
+      - ${STORAGE_PATH}/transcoded:/transcoded
+    ports:
+      - 3002:3000
+    entrypoint: 'node'
+    command: ['node_modules/.bin/nodemon', 'run.js', 'server']
+
+  arena:
+    image: muxer-api
+    depends_on:
+      - muxer
+      - redis
+    environment:
+      REDIS_HOST: redis.host
+      ARENA_PORT: 3000
+      ARENA_HOST: 0.0.0.0
+    ports:
+      - 3001:3000
+    links:
+      - redis:redis.host
+    volumes:
+      - ./:/home/node/server
+    command: ['arena']
+
+  muxer-worker:
+    image: muxer-api
+    depends_on:
+      - redis
+    links:
+      - redis:redis.host
+    environment:
+      REDIS_HOST: redis.host
+      NODE_ENV: development
+      TRANSIT_DIR: /transit
+      TRANSCODED_DIR: /transcoded
+    volumes:
+      - ./:/home/node/server
+      - ${STORAGE_PATH}/transit:/transit
+      - ${STORAGE_PATH}/transcoded:/transcoded
+    entrypoint: 'node'
+    command: ['node_modules/.bin/nodemon', 'run.js', 'worker']
+
+  redis:
+    image: redis:5.0.5
+    volumes:
+      - ${STORAGE_PATH}/redis:/data
+    command: redis-server --appendonly yes
