@@ -2,7 +2,8 @@ const HttpError = require('../errors/httpError');
 
 const keys = (process.env.ALLOWED_API_KEYS || '')
   .split(',')
-  .map(key => key.toLowerCase());
+  .map(key => key.toLowerCase())
+  .filter(Boolean);
 
 module.exports = (ctx, next) => {
   if (keys.length <= 0) {

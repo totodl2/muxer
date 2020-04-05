@@ -1,6 +1,6 @@
 module.exports = {
   // required string
-  name: 'mux',
+  name: 'muxer',
   // host display name, give it a helpful name for reference
   // required string
   hostId: 'Muxer',

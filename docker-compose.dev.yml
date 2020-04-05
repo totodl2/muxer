@@ -33,7 +33,7 @@ services:
       ARENA_PORT: 3000
       ARENA_HOST: 0.0.0.0
     ports:
-      - 3001:3000
+      - 3003:3000
     links:
       - redis:redis.host
     volumes:

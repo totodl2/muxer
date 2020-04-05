@@ -1,4 +1,5 @@
 const Sentry = require('@sentry/node');
+const debug = require('../debug')('error');
 const HttpError = require('../errors/httpError');
 
 module.exports = async (ctx, next) => {
@@ -15,6 +16,12 @@ module.exports = async (ctx, next) => {
         Sentry.captureException(err);
       });
     }
+
+    debug(
+      'Invalid request for %o, %s',
+      ctx.req.path,
+      err instanceof HttpError ? err.name : '',
+    );
 
     ctx.status = code;
     ctx.body = {

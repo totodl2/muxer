@@ -3,12 +3,14 @@ const Joi = require('@hapi/joi');
 const path = require('path');
 const fs = require('fs');
 const { sync: mkdir } = require('mkdirp');
-const writeChunk = require('../services/writeChunk');
 
+const queue = require('../queues/muxer/queue');
+const writeChunk = require('../services/writeChunk');
 const debug = require('../debug')('routes');
 const joi = require('../middlewares/joi');
 const cleaner = require('../services/cleaner');
 const allTranscoFinished = require('../services/allTranscoFinished');
+const status = require('../services/workerStatus');
 
 const router = new Router();
 
@@ -92,7 +94,7 @@ router.post(
     'query',
   ),
   async ctx => {
-    const { id, name } = ctx.query;
+    const { id, name, notify } = ctx.query;
     const cancelled = !!parseInt(ctx.query.cancelled || 0, 10);
     const waiting = (ctx.query.waiting || '').split(',');
 
@@ -117,7 +119,10 @@ router.post(
     const allFinished = await allTranscoFinished(id, waiting);
     debug('Transco finished : %o, for %i', allFinished, id);
 
-    // @todo checker si les transcos sont finies
+    if (allFinished) {
+      await status.setWaiting(id);
+      await queue.add({ id, notify, transco: waiting });
+    }
 
     ctx.body = true;
   },

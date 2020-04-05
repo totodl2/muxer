@@ -1,6 +1,7 @@
 const path = require('path');
 const debug = require('debug')('workers/songs');
 const { queue } = require('../queues/muxer/index');
+const events = require('../queues/muxer/events');
 
 module.exports = () => {
   const processArgs = process.argv.filter(
@@ -10,6 +11,10 @@ module.exports = () => {
   const processes = processArgs.length
     ? parseInt(processArgs[0].split('=')[1], 10)
     : 1;
+
+  Object.entries(events).forEach(([event, callback]) =>
+    queue.on(event, callback),
+  );
 
   return new Promise(resolve => {
     queue.process(
