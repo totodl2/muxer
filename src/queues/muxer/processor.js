@@ -87,6 +87,7 @@ module.exports = async job => {
   }
 
   await status.remove(id);
+  await cleaner.transit(id);
 
   if (notify) {
     await axios({

@@ -62,23 +62,6 @@ router.post(
   },
 );
 
-router.delete(
-  '/:id',
-  joi(
-    Joi.object({
-      id: Joi.alternatives()
-        .try(Joi.number(), Joi.string())
-        .required(),
-    }),
-    'params',
-  ),
-  async ctx => {
-    const { id } = ctx.params;
-    await cleaner.all(id);
-    ctx.body = true;
-  },
-);
-
 router.post(
   '/end',
   joi(
@@ -124,6 +107,26 @@ router.post(
       await queue.add({ id, notify, transco: waiting });
     }
 
+    ctx.body = true;
+  },
+);
+
+router.delete(
+  '/:id',
+  joi(
+    Joi.object({
+      id: Joi.alternatives()
+        .try(Joi.number(), Joi.string())
+        .required(),
+    }),
+    'params',
+  ),
+  async ctx => {
+    const { id } = ctx.params;
+    if (await status.exists(id)) {
+      status.setCancelled(id);
+    }
+    await cleaner.all(id);
     ctx.body = true;
   },
 );

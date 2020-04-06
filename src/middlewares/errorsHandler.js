@@ -10,8 +10,10 @@ module.exports = async (ctx, next) => {
     const code = err.status || 500;
 
     if (code.toString().substr(0, 1) === '5') {
-      Sentry.withScope(() => {
-        Sentry.setExtra('body', ctx.request.body);
+      Sentry.withScope(scope => {
+        scope.addEventProcessor(event =>
+          Sentry.Handlers.parseRequest(event, ctx.request),
+        );
         Sentry.setExtra('ctxState', ctx.state);
         Sentry.captureException(err);
       });
@@ -29,7 +31,9 @@ module.exports = async (ctx, next) => {
       name:
         (isDev || err instanceof HttpError ? err.name : null) ||
         'Unknown error',
-      message: err.message,
+      message:
+        (isDev || err instanceof HttpError ? err.message : null) ||
+        'Unknown error',
       violations: err.violations,
     };
     ctx.app.emit('error', err, ctx);

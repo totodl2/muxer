@@ -27,7 +27,7 @@ function getStreamTitle(stream) {
     return null;
   }
 
-  return titles[titles.length - 1];
+  return titles[titles.length - 1].trim();
 }
 
 function addMetadata(muxer, stream) {
@@ -39,7 +39,8 @@ function addMetadata(muxer, stream) {
   }
 
   muxer.ffo.withOutputOption(
-    `-metadata:s:${streamPosition} title="${title.replace('"', '_')}"`,
+    `-metadata:s:${streamPosition}`,
+    `title=${title.replace('"', '_')}`,
   );
 }
 

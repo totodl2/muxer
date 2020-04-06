@@ -1,5 +1,6 @@
 FROM node:10.19-buster
 
+ARG VERSION
 ENV NODE_ENV production
 ENV PORT 3000
 
