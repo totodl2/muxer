@@ -9,7 +9,7 @@ const router = require('./routes');
 const app = new Koa();
 
 app
-  .use(bodyParser())
+  .use(bodyParser({ jsonLimit: '15mb' }))
   .use(errorsHandler)
   .use(authenticated)
   .use(router.routes());
