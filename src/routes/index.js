@@ -46,6 +46,13 @@ router.post(
           writeChunk(fileoutput, start, data);
           start += len;
         } catch (e) {
+          debug(
+            'File %s for preset %s with id %s failed %o',
+            name,
+            preset,
+            id,
+            e,
+          );
           ctx.req.off('data', onData);
           reject(e);
         }
@@ -100,7 +107,7 @@ router.post(
     });
 
     const allFinished = await allTranscoFinished(id, waiting);
-    debug('Transco finished : %o, for %i', allFinished, id);
+    debug('Transco finished : %o, for %o', allFinished, id);
 
     if (allFinished) {
       await status.setWaiting(id);
