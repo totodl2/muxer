@@ -44,7 +44,7 @@ function addMetadata(muxer, stream) {
   );
 }
 
-module.exports = async (id, transco) => {
+module.exports = async (id, transco, subtitle) => {
   const transitDirectory = path.join(TRANSIT_DIR, id);
   const informations = await transco.reduce(
     async (prev, current) => [
@@ -89,7 +89,7 @@ module.exports = async (id, transco) => {
   subtitles.forEach(({ name: filename, stream }, i) => {
     const filepath = path.join(transitDirectory, 'subtitles', filename);
 
-    Object.entries(muxers).forEach(([name, muxer]) => {
+    Object.entries(muxers).forEach(([, muxer]) => {
       muxer.ffo.input(filepath).withOutputOption(`-map ${muxer.nextFile}`);
       muxer.nextFile += 1;
 
@@ -105,9 +105,27 @@ module.exports = async (id, transco) => {
     });
   });
 
+  // add given external subtitle
+  if (subtitle) {
+    Object.entries(muxers).forEach(([, muxer]) => {
+      muxer.ffo.input(subtitle).withOutputOption(`-map ${muxer.nextFile}`);
+      muxer.nextFile += 1;
+
+      addMetadata(muxer, { tags: { title: 'external ' } });
+      muxer.nextStream += 1;
+    });
+
+    results.push({
+      type: 'sub',
+      title: 'external',
+      outfile: `external.vtt`,
+      ffo: new FFMpeg(subtitle),
+    });
+  }
+
   Object.entries(muxers).forEach(([name, muxer]) => {
     // set sub codec
-    if (subtitles.length > 0) {
+    if (subtitles.length > 0 || subtitle) {
       muxer.ffo.withOutputOption('-c:s mov_text');
     }
 

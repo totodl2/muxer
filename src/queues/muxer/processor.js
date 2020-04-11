@@ -36,7 +36,7 @@ function run(ffo) {
 
 module.exports = async job => {
   const {
-    data: { id, transco, notify },
+    data: { id, transco, notify, subtitle },
   } = job;
 
   debug('Muxing job for %s', id);
@@ -47,7 +47,7 @@ module.exports = async job => {
   await status.setActive(id);
 
   const directory = path.join(TRANSCODED_DIR, id);
-  const muxers = await getMuxers(id, transco);
+  const muxers = await getMuxers(id, transco, subtitle);
 
   mkdir(directory);
 

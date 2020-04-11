@@ -31,7 +31,13 @@ router.post(
     const directory = path.join(process.env.TRANSIT_DIR, id, preset);
     const fileoutput = path.join(directory, name);
     mkdir(directory);
-    debug('Receiving file %s for preset %s with id %s', name, preset, id);
+    debug(
+      'Receiving file %s for preset %s with id %s, headers %o',
+      name,
+      preset,
+      id,
+      ctx.req.headers,
+    );
 
     await new Promise((resolve, reject) => {
       let start = 0;
@@ -79,17 +85,18 @@ router.post(
       name: Joi.string().required(),
       waiting: Joi.string().required(),
       cancelled: Joi.number().required(),
-      notify: Joi.string(),
+      notify: Joi.string().uri({ scheme: ['http', 'https'] }),
+      subtitle: Joi.string().uri({ scheme: ['http', 'https'] }),
     }).options({ allowUnknown: true }),
     'query',
   ),
   async ctx => {
-    const { id, name, notify } = ctx.query;
+    const { id, name, notify, subtitle } = ctx.query;
     const cancelled = !!parseInt(ctx.query.cancelled || 0, 10);
     const waiting = (ctx.query.waiting || '').split(',');
 
     debug(
-      'End notification received for transcoding %s with id %i and cancellation status %o',
+      'End notification received for transcoding %s with id %s and cancellation status %o',
       name,
       id,
       cancelled,
@@ -111,7 +118,7 @@ router.post(
 
     if (allFinished) {
       await status.setWaiting(id);
-      await queue.add({ id, notify, transco: waiting });
+      await queue.add({ id, notify, transco: waiting, subtitle });
     }
 
     ctx.body = true;
