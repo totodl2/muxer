@@ -2,7 +2,9 @@
 const FFMpeg = require('fluent-ffmpeg');
 const fs = require('fs');
 const path = require('path');
+const get = require('lodash.get');
 const util = require('util');
+const languages = require('./languages');
 
 const readFile = util.promisify(fs.readFile);
 
@@ -19,6 +21,11 @@ function getMuxer(instances, preset) {
   return instances[preset];
 }
 
+function getStreamLang(stream) {
+  const { language } = stream;
+  return language || get(stream, ['tags', 'language code']) || null;
+}
+
 function getStreamTitle(stream) {
   const { tags: { title } = {}, language } = stream;
   const titles = (title || language || '').split(',');
@@ -33,15 +40,22 @@ function getStreamTitle(stream) {
 function addMetadata(muxer, stream) {
   const title = getStreamTitle(stream);
   const streamPosition = muxer.nextStream;
+  const lang = getStreamLang(stream);
 
   if (title.length <= 0) {
     return;
   }
 
-  muxer.ffo.withOutputOption(
+  const props = [
     `-metadata:s:${streamPosition}`,
     `title=${title.replace('"', '_')}`,
-  );
+  ];
+
+  if (lang && languages[lang.toUpperCase()]) {
+    props.push(`language=${languages[lang.toUpperCase()]}`);
+  }
+
+  muxer.ffo.withOutputOption(props);
 }
 
 module.exports = async (id, transco, subtitle) => {
@@ -101,6 +115,7 @@ module.exports = async (id, transco, subtitle) => {
       type: 'sub',
       title: getStreamTitle(stream),
       outfile: `${i}.vtt`,
+      lang: getStreamLang(stream),
       ffo: new FFMpeg(filepath),
     });
   });
@@ -120,6 +135,7 @@ module.exports = async (id, transco, subtitle) => {
       title: 'external',
       outfile: `external.vtt`,
       ffo: new FFMpeg(subtitle),
+      lang: null,
     });
   }
 
