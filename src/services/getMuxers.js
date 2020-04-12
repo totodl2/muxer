@@ -46,16 +46,17 @@ function addMetadata(muxer, stream) {
     return;
   }
 
-  const props = [
-    `-metadata:s:${streamPosition}`,
-    `title=${title.replace('"', '_')}`,
-  ];
-
   if (lang && languages[lang.toUpperCase()]) {
-    props.push(`language=${languages[lang.toUpperCase()]}`);
+    muxer.ffo.withOutputOption(
+      `-metadata:s:${streamPosition}`,
+      `language=${languages[lang.toUpperCase()]}`,
+    );
   }
 
-  muxer.ffo.withOutputOption(props);
+  muxer.ffo.withOutputOption(
+    `-metadata:s:${streamPosition}`,
+    `title="${title.replace('"', '_')}"`,
+  );
 }
 
 module.exports = async (id, transco, subtitle) => {
