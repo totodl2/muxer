@@ -24,7 +24,7 @@ function run(ffo) {
         reject(new Error(`${cmd}\n${stderr || err || stdout}`));
       })
       .on('end', () => {
-        resolve();
+        resolve(cmd);
       })
       .on('start', commandLine => {
         cmd = commandLine;
@@ -66,7 +66,7 @@ module.exports = async job => {
 
         ffo.output(absoluteFilePath);
 
-        await run(ffo);
+        const cmd = await run(ffo);
         debug('Ffmpeg finished for %s, id %s', outfile, id);
         job.progress((i / muxers.length) * 100);
         previous.push({
@@ -74,6 +74,7 @@ module.exports = async job => {
           title,
           filepath: relativeFilePath,
           filename: outfile,
+          cmd,
         });
         return previous;
       },
@@ -94,7 +95,7 @@ module.exports = async job => {
       method: 'POST',
       timeout: 5000,
       url: notify,
-      data: results,
+      data: results.map(({ cmd, ...el }) => el),
     });
   }
 

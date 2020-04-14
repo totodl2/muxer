@@ -49,7 +49,7 @@ function addMetadata(muxer, stream) {
   if (lang && languages[lang.toUpperCase()]) {
     muxer.ffo.withOutputOption(
       `-metadata:s:${streamPosition}`,
-      `language=${languages[lang.toUpperCase()]}`,
+      `language=${languages[lang.toUpperCase()].toLowerCase()}`,
     );
   }
 
