@@ -59,6 +59,12 @@ function addMetadata(muxer, stream) {
   );
 }
 
+/**
+ * @param {string} id
+ * @param {string[]} transco transcoder output name to use
+ * @param {string} [subtitle] optional external subtitle
+ * @return {Promise<[]>}
+ */
 module.exports = async (id, transco, subtitle) => {
   const transitDirectory = path.join(TRANSIT_DIR, id);
   const informations = await transco.reduce(

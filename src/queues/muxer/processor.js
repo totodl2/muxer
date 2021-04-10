@@ -54,7 +54,7 @@ module.exports = async job => {
   let results = null;
   try {
     results = await muxers.reduce(
-      async (prev, { type, title, outfile, ffo }, i) => {
+      async (prev, { type, title, outfile, lang, ffo }, i) => {
         const previous = await prev;
         debug('Running ffmpeg for %s, id %s', outfile, id);
         if (await status.isCancelled(id)) {
@@ -72,6 +72,7 @@ module.exports = async job => {
         previous.push({
           type,
           title,
+          lang,
           filepath: relativeFilePath,
           filename: outfile,
           cmd,
